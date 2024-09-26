@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Streaming Lorem Ipsum</title>
+  </head>
+  <body>
+    <h1>Streaming Lorem Ipsum</h1>
+    <div id="stream-output"></div>
+
+    <script>
+      // Function to fetch the stream via the fetch API
+      async function fetchStream() {
+        const outputDiv = document.getElementById("stream-output");
+
+        // Make a POST request to fetch the stream
+        const response = await fetch("/stream", {
+          method: "POST",
+        });
+
+        // Get the readable stream from the response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        let done = false;
+
+        // Read the stream chunk by chunk
+        while (!done) {
+          const { value, done: streamDone } = await reader.read();
+          done = streamDone;
+
+          // Decode the chunk and append to the outputDiv
+          if (value) {
+            const chunkText = decoder.decode(value);
+            outputDiv.innerHTML += chunkText;
+          }
+        }
+      }
+
+      // Start fetching the stream as soon as the page loads
+      window.onload = fetchStream;
+    </script>
+  </body>
+</html>

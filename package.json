@@ -1,0 +1,16 @@
+{
+  "name": "rag-stream-express",
+  "version": "1.0.0",
+  "description": "coba consume streaming response rag",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0",
+    "nunjucks": "^3.2.4"
+  }
+}
