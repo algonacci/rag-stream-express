@@ -10,7 +10,7 @@
 
     <form id="travel-form">
       <div>
-        <label for="city">city Tujuan:</label>
+        <label for="city">City Tujuan:</label>
         <input type="text" id="city" name="city" required />
       </div>
 
@@ -79,44 +79,35 @@
       document
         .getElementById("travel-form")
         .addEventListener("submit", async function (event) {
-          event.preventDefault(); // Prevent the form from submitting the traditional way
+          event.preventDefault();
 
-          // Collect form data
-          const formData = {
-            city: document.getElementById("city").value,
-            jumlah_orang: document.getElementById("jumlah_orang").value,
-            mata_uang: document.getElementById("mata_uang").value,
-            budget: document.getElementById("budget").value,
-            musim: document.getElementById("musim").value,
-            lama_perjalanan: document.getElementById("lama_perjalanan").value,
-            tipe_perjalanan: document.getElementById("tipe_perjalanan").value,
-            transportasi: document.getElementById("transportasi").value,
-          };
+          const formData = new FormData(this);
+          const jsonData = Object.fromEntries(formData.entries());
 
-          // Send the form data using fetch
-          try {
-            const response = await fetch("/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            });
+          const response = await fetch("/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(jsonData),
+          });
 
-            // Parse the JSON response from the server
-            if (!response.ok) {
-              throw new Error("Network response was not ok.");
+          if (response.ok) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            const responseOutput = document.getElementById("response-output");
+            responseOutput.innerHTML = ""; // Clear previous content
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              const chunk = decoder.decode(value, { stream: true });
+              responseOutput.innerHTML += chunk;
             }
-
-            const result = await response.text(); // Assuming you're receiving HTML or text
-            document.getElementById("response-output").innerHTML = result;
-          } catch (error) {
-            console.error(
-              "There was a problem with the fetch operation:",
-              error
-            );
+          } else {
+            console.error("Error:", response.statusText);
             document.getElementById("response-output").innerHTML =
-              "<p style='color: red;'>Error submitting the form. Please try again.</p>";
+              "Error submitting form";
           }
         });
     </script>

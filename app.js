@@ -33,7 +33,11 @@ app.post("/", async (req, res) => {
     transportasi,
   } = req.body;
 
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Transfer-Encoding", "chunked");
+
   try {
+    // Send a POST request to Flask's /rag_stream with JSON data
     const ragStreamResponse = await fetch("http://localhost:5000/rag_stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,27 +53,27 @@ app.post("/", async (req, res) => {
       }),
     });
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
     const reader = ragStreamResponse.body.getReader();
+    const decoder = new TextDecoder("utf-8");
 
-    async function readStream() {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          res.end();
-          break;
-        }
-        res.write(new TextDecoder().decode(value));
+    let done = false;
+
+    // Read the stream chunk by chunk and forward it to the client in real time
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+
+      if (value) {
+        // Decode the chunk and send it to the client
+        const chunkText = decoder.decode(value);
+        console.log(chunkText);
+
+        res.write(chunkText);
       }
     }
 
-    readStream().catch((error) => {
-      console.error("Error reading stream:", error);
-      res.status(500).end("Error processing stream");
-    });
+    // End the response once the streaming is done
+    res.end();
   } catch (error) {
     console.error("Error fetching from Flask server:", error);
     res.status(500).send("Error fetching from Flask server.");
@@ -98,6 +102,8 @@ app.post("/stream", async (req, res) => {
 
     if (value) {
       const chunkText = decoder.decode(value);
+      console.log(value);
+
       res.write(chunkText);
     }
   }
