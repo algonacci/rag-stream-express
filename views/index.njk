@@ -4,6 +4,68 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Travel Information Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #2c3e50;
+      }
+      form {
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+      }
+      button {
+        background: #3498db;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #2980b9;
+      }
+      #response-output {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        padding: 20px;
+        margin-top: 20px;
+      }
+      .day {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      .day h2 {
+        color: #2c3e50;
+        margin-top: 0;
+      }
+      .activity {
+        margin-bottom: 10px;
+      }
+      .total {
+        font-weight: bold;
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
     <h1>Input Travel Information</h1>
@@ -95,15 +157,33 @@
           if (response.ok) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            const responseOutput = document.getElementById("response-output");
-            responseOutput.innerHTML = ""; // Clear previous content
+            const outputElement = document.getElementById("response-output");
+
+            // Clear previous content and add card structure
+            outputElement.innerHTML =
+              '<div class="card"><article></article></div>';
+            const articleElement = outputElement.querySelector("article");
+
+            let buffer = "";
 
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
-              const chunk = decoder.decode(value, { stream: true });
-              responseOutput.innerHTML += chunk;
+
+              buffer += decoder.decode(value, { stream: true });
+
+              // Update the article content
+              articleElement.innerHTML = buffer;
             }
+
+            // After streaming is complete, apply some basic formatting
+            // articleElement.innerHTML = articleElement.innerHTML
+            //   .replace(/Hari \d+:/g, (match) => `<h2>${match}</h2>`)
+            //   .replace(/\n/g, "<br>")
+            //   .replace(
+            //     /Total Keseluruhan:/g,
+            //     "<strong>Total Keseluruhan:</strong>"
+            //   );
           } else {
             console.error("Error:", response.statusText);
             document.getElementById("response-output").innerHTML =

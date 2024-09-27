@@ -33,11 +33,13 @@ app.post("/", async (req, res) => {
     transportasi,
   } = req.body;
 
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Transfer-Encoding", "chunked");
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  });
 
   try {
-    // Send a POST request to Flask's /rag_stream with JSON data
     const ragStreamResponse = await fetch("http://localhost:5000/rag_stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,7 +60,6 @@ app.post("/", async (req, res) => {
 
     let done = false;
 
-    // Read the stream chunk by chunk and forward it to the client in real time
     while (!done) {
       const { value, done: streamDone } = await reader.read();
       done = streamDone;
@@ -68,7 +69,7 @@ app.post("/", async (req, res) => {
         const chunkText = decoder.decode(value);
         console.log(chunkText);
 
-        res.write(chunkText);
+        res.write(chunkText); // Send the cleaned chunk to the client
       }
     }
 
